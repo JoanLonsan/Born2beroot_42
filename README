@@ -1,0 +1,183 @@
+Download a latest version of debian and create a virtual machine.
+With the Graphical install set the next configuration:
+--------------------------------------------------------
+1.  VM Settings
+--------------------------------------------------------
+Partition Setup [bonus]:
+    sda                     30.8G   disk
+     -sda1                   500M   part    /boot   [Primary]
+     -sda2                     1K   part
+     -sda5                  30.3G   part            [Logical]
+      -sda5_crypt           30.3G   crypt           [Encrypted]
+       -LVMGroup-root         10G   lvm     /
+       -LVMGroup-swap        2.3G   lvm     [swap]
+       -LVMGroup-home          5G   lvm     /home
+       -LVMGroup-var           3G   lvm     /var
+       -LVMGroup-srv           3G   lvm     /srv
+       -LVMGroup-tmp           3G   lvm     /tmp
+       -LVMGroup-var--log      4G   lvm     /var/log
+    sr0                     1024M   rom
+--------------------------------------------------------
+2.  VM Config
+--------------------------------------------------------
+2.1 [Sudo Config]
+    - First type 'su -' to login in as the rsugroup user42oot user.
+    - Then type 'apt-get update -y && apt-get upgrade -y'
+    - Then type 'apt install sudo'
+    - Then type 'usermod -aG sudo <your_username>' to add user in the sudo group.
+    - Type 'sudo visudo' to open sudoers file.  
+    - Type 'mkdir /var/log/sudo'
+    - Type 'touch /var/log/sudo/sudo.log'su 
+    - Find - # User privilege specification and type 
+             '<your_username> ALL=(ALL:ALL) ALL'
+    - Set configs:
+        *****************************************************
+        * Defaults      passwd_tries=3                      * -> Max retries of password.
+        * Defaults      badpass_message="<Message>"         * -> Error Message. 
+        * Defaults      log_input,log_output                * -> Input and ouput logs.
+        * Defaults      iolog_dir="/var/log/sudo"           * -> Log Directory.
+        * Defaults      logfile="/var/log/sudo/sudo.log"    * -> Log File.
+        * Defaults      requiretty                          * -> Mode TTY on.
+        * Defaults      secure_path="<paths/from/subject>"  * -> Config path.
+        *****************************************************
+    - Save the file and restart the VM.
+--------------------------------------------------------
+2.2 [User and Group Configuration]
+    - First type 'sudo groupadd user42' to create a group.
+    - Type sudo 'usermod -aG user42 <your_username>'.
+--------------------------------------------------------
+2.3 [Setting up a strong password policy]
+    - Type 'sudo nano /etc/login.defs'.
+    - Set configs:
+        *************************************************
+        * PASS_MAX_DAYS    99999 -> PASS_MAX_DAYS    30 * -> Caducity of passwords.
+        * PASS_MIN_DAYS    0     -> PASS_MIN_DAYS    2  * -> Min days to change password.
+        * PASS_WARN_AGE    7     -> QUIET                * -> Warn message to change password.
+        *************************************************
+    - Type 'sudo apt install libpam-pwquality'.
+    - Type sudo nano '/etc/pam.ud/common-password' for config policies.
+    - add to the end on the next line ->>
+        #here are the per-package modules (the "primary" block)
+        password    requisite   pam_pwquality.so retry=3 '<insert_here>'
+    ****************************************************************************************
+    * minlen=10 ucredit=-1 dcredit=-1 maxrepeat=3 reject_username difok=7 enforce_for_root *
+    *                                                                                      *
+    * minlen=10             ->       length min to password.                                *
+    * ucredit=-1            ->       1 upper character on password.                         *
+    * dcredit=-1            ->       1 lower character on password.                         *
+    * maxrepeat=3           ->       max tries to enter password.                           *
+    * reject_username       ->       reject username on password.                           *
+    * difok=7               ->       7 differents characters on password.                   *
+    * enforce_for_root      ->       apply policies to user root.                           *
+    ****************************************************************************************
+    - change a password:
+        type '$ passwd' for change user passwd.
+        type '$ sudo passwd' for change root passwd.
+--------------------------------------------------------
+2.4 [installing and configure ssh - ufw]
+    - type 'sudo apt install openssh-server'
+    - type 'sudo nano /etc/ssh/sshd_config'
+    - set configs:
+       ***********************************************
+       *#port 22                            ->   4242 *
+       *#permitrootlogin prohibit-password  ->   no   *
+       ***********************************************
+    - type 'sudo service ssh status' -> it`s should be active.
+    - type 'sudo apt install ufw'
+    - type 'sudo ufw enable'
+    - type 'sudo ufw allow 4242'
+    - type 'sudo ufw status'
+--------------------------------------------------------
+2.5 [network adapter configuration]
+    - 'sudo shutdown now'
+    - go to your vm settings in virtualbox
+        network -> adapter 1 -> advanced -> port forwarding
+        add new rule and next parameters:
+        **************************************************************************
+        * protocol       host ip       host port       guest ip       guest port *
+        * tcp            127.0.0.1     4242            10.0.2.15      4242       *
+        **************************************************************************
+    - in your host machine open terminal and run ->
+        cd ww   
+    - now you can control your virtual machine from the host terminal.
+--------------------------------------------------------
+2.6 [crontab and wall]
+    - type 'sudo apt-get update -y && sudo apt-get upgrade -y'
+    - install net-sudo tools [programs for nerwork managment] 
+        type 'sudo apt install net-tools -y'
+    - type 'sudo crontab -u root -e' to edit file crontab.  
+        '*/10 * * * * /usr/local/bin/monitoring.sh'
+--------------------------------------------------------
+3. Bonus Part
+--------------------------------------------------------
+3.1 [HTTP - MariaDB - PHP]
+ [HTTP]
+ - Type 'sudo apt install lighttpd'
+ - Type 'sudo ufw allow 80'
+ 
+ [MariaDB]
+ - Type 'sudo apt install mariadb-server'
+ - Type 'sudo mysql_secure_installation'
+        Enter current password for root (enter for none): 
+        #Just press Enter (do not confuse database root with system root)
+        Set root password? [Y/n] n
+        Remove anonymous users? [Y/n] Y
+        Disallow root login remotely? [Y/n] Y
+        Remove test database and access to it? [Y/n] Y
+        Reload privilege tables now? [Y/n] Y
+ - Config database:
+    CREATE DATABASE <database-name>;
+    GRANT ALL ON <database-name>.* TO '<username-2>'@'localhost' 
+    IDENTIFIED BY '<password-2>' WITH GRANT OPTION;
+    FLUSH PRIVILEGES;
+    exit
+    mariadb -u <username-2> -p
+    SHOW DATABASES;
+ [PHP]
+ - Type 'sudo apt install php-cgi php-mysql'
+ 
+--------------------------------------------------------
+ 3.2 Download and configure Worpress
+ - Type 'sudo apt install wget zip'
+ - Download WordPress to /var/www/html
+ - cd /var/www/html; sudo wget http://wordpress.org/latest.tar.gz -P /var/www/html
+ - Type 'sudo tar -xzvf /var/www/html/latest.tar.gz'
+ - Type 'sudo rm /var/www/html/latest.tar.gz'
+ - Copy content of /var/www/html/wordpress to /var/www/html
+    'sudo cp -r /var/www/html/wordpress/* /var/www/html'
+    'sudo rm -rf /var/www/html/wordpress'
+ - Create WordPress configuration file from its sample
+    'sudo cp /var/www/html/wp-config-sample.php /var/www/html/wp-config.php'
+    'sudo nano /var/www/html/wp-config.php'
+[Configure LIGHTTP]
+    sudo lighty-enable-mod fastcgi
+    sudo lighty-enable-mod fastcgi-phpd
+    sudo service lighttpd force-reload
+  **************************************************************************
+  * protocol       host ip       host port       guest ip       guest port *
+  * tcp            127.0.0.1     80              10.0.2.15      80         *
+  **************************************************************************
+Restart Machine
+--------------------------------------------------------
+3.3 FTP Service
+ - Type 'sudo apt install vsftpd'
+ - type 'sudo ufw allow 21'
+ - type 'sudo nano /etc/vsftpd.conf'
+ - Uncomment the lines:
+     '#write_enable=YES'
+     '#chroot_local_user=YES'
+ - To set folder for FTP-connected user to /home/<user>/ftp:
+    sudo mkdir /home/<user>/ftp
+    sudo mkdir /home/<user>/ftp/files
+    sudo chown nobody:nogroup /home/<user>/ftp
+    sudo chmod a-w /home/<user>/ftp
+    user_sub_token=$USER
+    local_root=/home/$USER/ftp
+ - To whitelist FTP
+    sudo vi /etc/vsftpd.userlist
+    echo <username> | sudo tee -a /etc/vsftpd.userlist
+    userlist_enable=YES
+    userlist_file=/etc/vsftpd.userlist
+    userlist_deny=NO
+ - Connect --> ftp <ip-address>
+
