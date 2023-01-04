@@ -1,0 +1,48 @@
+|###|Joan42Crescenti|###|
+ssh jcrescen@localhost -p (Puerto Abierto)
+Dir de mi B2broot:
+	/System/Volumes/Data/sgoinfre/students/jcrescen/Born2beroot 
+
+Comprobación Debian:
+	uname -v	
+Crear user:
+	sudo adduser login
+Crear grupo:
+	sudo addgroup nombre_del_grupo
+Check grupo y users:
+	getent group nombre_del_grupo
+Añadir user a grupo:
+	sudo adduser _user _group
+Comprobación SSH Active:
+	sudo service ssh status
+Comprobación UFW activo:
+	sudo service ufw status
+Check Pass:
+	Ruta > /etc/pam.d > common-password
+Reiniciar máquina:
+	sudo reboot
+¿Dónde está el script monitoring?
+	/home/jcrescen
+Contenido del script:
+	Arch > Print de toda la información
+	CPU Physical > grep del fichero "physical id", y con wc -l contamos líneas.
+	CPU Virtual > grep del processor. 
+	RAM > --mega por subject + filtrado por AWK + palabra que nos interese (1ª, 2ª,...)
+	Disk > df = disk filesystem "-m" para que aparezca en Megas.
+	CPU Load > vmstat muestra % en intervalo de segs (1-3 en mi caso). Se resta a 100 para %.
+	Last Boot > Comando WHO -b, + filtrado de info que aparece.
+	LVM Use > Check ?activo? Con condicion para YES o NO.
+	TCP Connexion > Contar con "wc -l" resultado de ss -ta para mostrar únicamente tcp.
+	USER Log > con "users" saca listado de usuarios, con "wc -w" contamos "palabras/#users".
+	NETWORK > ip link + grep para sacar IP y hostname para la MAC.
+	SUDO > journalctl para recopilar y admin los registros de programa.
+CronTab > sudo crontab -u root -e
+	Minuto | Hora (formato 24h) | dom > day of month | dow > day of week | command > ruta al script
+
+Bonus!
+lsblk > Ver particiones Bonus
+Wordpress funcional: En Navegador "localhost".
+	sudo apt install lighttpd > Al instalar/updatear, aparece que ya está actualizado.
+	mariadb > aparece navegador de éste. exit para salir.
+	!desde Mariadb > show databases; para que aparezca el administrador de BD: phpmyadmin.
+localhost:7080 > Para ir a LiteSpeed. Si entramos en nuestro WP, veremos que empiezan las métricas.
