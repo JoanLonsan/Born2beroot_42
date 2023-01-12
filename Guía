@@ -2,7 +2,13 @@
 ssh jcrescen@localhost -p (Puerto Abierto)
 Dir de mi B2broot:
 	/System/Volumes/Data/sgoinfre/students/jcrescen/Born2beroot 
+GOD!
+	sudo systemctl list-unit-files --type service --all
+Firma:
+shasum del .vdi
 
+Interfaz check:
+	ls /usr/bin/*session
 Comprobación Debian:
 	uname -v	
 Crear user:
@@ -15,12 +21,20 @@ Añadir user a grupo:
 	sudo adduser _user _group
 Comprobación SSH Active:
 	sudo service ssh status
+	wh
 Comprobación UFW activo:
 	sudo service ufw status
+	dpkg -s ufw > Mirar que está instalado OK.
 Check Pass:
 	Ruta > /etc/pam.d > common-password
+Hostname:
+	En terminal: hostname, para verlo.
+	Para modificarlo:
+		sudo vim /etc/hostname y en /etc/hosts
 Reiniciar máquina:
 	sudo reboot
+Sudo instalado?
+	dpkg -s sudo
 ¿Dónde está el script monitoring?
 	/home/jcrescen
 Contenido del script:
@@ -38,6 +52,9 @@ Contenido del script:
 	SUDO > journalctl para recopilar y admin los registros de programa.
 CronTab > sudo crontab -u root -e
 	Minuto | Hora (formato 24h) | dom > day of month | dow > day of week | command > ruta al script
+Cron stop/restart:
+	sudo /etc/init.d/cron stop
+	sudo /etc/init.d/cron start
 
 Bonus!
 lsblk > Ver particiones Bonus
